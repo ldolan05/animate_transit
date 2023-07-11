@@ -16,13 +16,13 @@ class system(object):
         self.a_R1 = a_R1        # orbital distance over radius of object 1
         self.b = b              # impact parameter
         self.theta = theta      # spin-orbit angle
-        self.grid1 = np.zeros((self.n_pixs, self.n_pixs))
-        self.L2_L1 = L2_L1
+        self.grid1 = np.zeros((self.n_pixs, self.n_pixs))   # grid for object 1 (serves as background grid)
+        self.L2_L1 = L2_L1      # luminosity ratio 
 
-        self.u1_1= u1_1
+        self.u1_1= u1_1         # limb darkening coefficents for object 1
         self.u2_1 = u2_1
 
-        self.u1_2= u1_2
+        self.u1_2= u1_2         # limb darkening coefficents for object 2
         self.u2_2 = u2_2
 
     def model_object1(self):
@@ -69,6 +69,7 @@ def gif_maker(file_list):
         for file in file_list:
             image = imageio.imread(file)
             writer.append_data(image)
+
 
 test_system = system(n_pixs=1000, R1=0.32, R2=0.11, a_R1=12.7, b=0.8, theta=0, L2_L1=0.1, u1_1 = 2 * np.sqrt(0.6) * 0.85, u2_1=np.sqrt(0.6) * (1 - 2 * 0.85), u1_2 = 2 * np.sqrt(0.6) * 0.85, u2_2=np.sqrt(0.6) * (1 - 2 * 0.85))
 
