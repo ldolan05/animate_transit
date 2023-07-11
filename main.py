@@ -2,6 +2,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 import imageio
 from glob import glob
+from tqdm import tqdm
+from multiprocessing import Pool
 
 class system(object):
 
@@ -41,6 +43,8 @@ class system(object):
                     else:
                         self.grid1[y, x]=1.
 
+        return self.grid1
+
     def model_object2(self, phase):
         grid = self.grid1.copy()
 
@@ -77,12 +81,7 @@ class system(object):
         diff_line_profile = np.dot(sflux_star, profile)/line_profile
         norm = np.max(np.dot(sflux_star, profile))
 
-        return line_profile/norm, diff_line_profile
-    
-    def normalised_flux(self, grid):
-        ref_flux = np.sum(self.grid1)
-        flux = np.sum(grid)/ref_flux
-        return flux
+        return line_profile/norm, diff_line_profile  
 
 def gif_maker(file_list):
     # Creates the gif by combining all the image files in the given list
@@ -91,27 +90,43 @@ def gif_maker(file_list):
             image = imageio.imread(file)
             writer.append_data(image)
 
+def normalised_flux(grid, grid1):
+    ref_flux = np.sum(grid1)
+    flux = np.sum(grid)/ref_flux
+    return flux
+
+def get_fluxes(model_list, grid1):
+    # Calculates full array of fluxes for the light curve
+    flux_arr=[]
+    for model in model_list:
+        flux_arr.append(normalised_flux(model, grid1=grid1))
+    return np.array(flux_arr)
+
 
 test_system = system(n_pixs=1000, R1=0.32, R2=0.3, a_R1=4., b=0., theta=0, L2_L1=0., u1_1 = 2 * np.sqrt(0.6) * 0.85, u2_1=np.sqrt(0.6) * (1 - 2 * 0.85)) #, u1_2 = 2 * np.sqrt(0.6) * 0.85, u2_2=np.sqrt(0.6) * (1 - 2 * 0.85))
 
 # Model the fixed object to create the base grid
-test_system.model_object1()
+master_grid = test_system.model_object1()
 
 min_phase=-0.1
 max_phase=0.1
+stepsize=0.001
 
-phase_tmp=[]
-master_flux_arr=[]
-for i, phase in enumerate(np.arange(min_phase,max_phase,0.001)):
-    model = test_system.model_object2(phase=phase)
+phase_arr = np.arange(min_phase,max_phase,stepsize)
 
+# Creates a multiprocessing pool
+pool = Pool(8)
+# Creates models for all phases using multiprocess pool for speed
+model_list = list(tqdm(pool.imap(test_system.model_object2, phase_arr), total=len(phase_arr)))
+flux_arr = get_fluxes(model_list, master_grid)
+
+for i, (phase, model) in enumerate(tqdm(zip(phase_arr, model_list), total=len(phase_arr))):
     vgrid = np.arange(-20,20,0.2)
     line_prof, diff_line_prof = test_system.model_profile(model, vgrid=vgrid, vsini=3)
 
-    flux = test_system.normalised_flux(model)
-
-    phase_tmp.append(phase) #Appends the current phase value to a temporary array for the plotting
-    master_flux_arr.append(flux) #Appends the flux value to a master array that is used to track the flux across multiple frames
+    #Create temporary arrays of the phase and flux for the current phase value for plotting
+    phase_tmp = phase_arr[phase_arr<=phase]
+    flux_tmp = flux_arr[phase_arr<=phase]
 
     fig, (ax1, ax2, ax3) = plt.subplots(3, figsize=(8,20))
     
@@ -120,7 +135,7 @@ for i, phase in enumerate(np.arange(min_phase,max_phase,0.001)):
     ax1.axis("off")
 
     # Plots light curve
-    ax2.scatter(phase_tmp, master_flux_arr, marker='.', c='c')
+    ax2.scatter(phase_tmp, flux_tmp, marker='.', c='c')
     ax2.set_xlim(min_phase, max_phase)
 
     ax2.set_xlabel("Phase")
