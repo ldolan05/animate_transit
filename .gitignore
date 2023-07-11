@@ -1,3 +1,5 @@
 
 .DS_Store
-figs/**
+.vscode/
+*.png
+*.gif
