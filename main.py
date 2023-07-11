@@ -62,6 +62,27 @@ class system(object):
                             grid[y, x]=grid[y, x]*(1-self.u1_2*onemu - self.u2_2*onemu*onemu)
 
         return grid
+    
+    def model_profile(self, grid, vgrid, vsini, a=0.5, linewidth=3.):
+        
+        vc=(np.arange(self.n_pixs)-self.n_pixs/2)/self.R1*vsini
+        vs=vgrid[np.newaxis,:]-vc[:,np.newaxis]
+
+        profile=1.-a*np.exp( -(vs*vs)/2./linewidth**2)
+
+        sflux=grid.sum(axis=0)
+        line_profile=np.dot(sflux,profile)
+
+        sflux_star = self.grid1.sum(axis=0)
+        diff_line_profile = np.dot(sflux_star, profile)/line_profile
+        norm = np.max(np.dot(sflux_star, profile))
+
+        return line_profile/norm, diff_line_profile
+    
+    def normalised_flux(self, grid):
+        ref_flux = np.sum(self.grid1)
+        flux = np.sum(grid)/ref_flux
+        return flux
 
 def gif_maker(file_list):
     # Creates the gif by combining all the image files in the given list
@@ -71,44 +92,54 @@ def gif_maker(file_list):
             writer.append_data(image)
 
 
-test_system = system(n_pixs=1000, R1=0.32, R2=0.11, a_R1=12.7, b=0.8, theta=0, L2_L1=0.1, u1_1 = 2 * np.sqrt(0.6) * 0.85, u2_1=np.sqrt(0.6) * (1 - 2 * 0.85), u1_2 = 2 * np.sqrt(0.6) * 0.85, u2_2=np.sqrt(0.6) * (1 - 2 * 0.85))
+test_system = system(n_pixs=1000, R1=0.32, R2=0.3, a_R1=4., b=0., theta=0, L2_L1=0., u1_1 = 2 * np.sqrt(0.6) * 0.85, u2_1=np.sqrt(0.6) * (1 - 2 * 0.85)) #, u1_2 = 2 * np.sqrt(0.6) * 0.85, u2_2=np.sqrt(0.6) * (1 - 2 * 0.85))
 
 # Model the fixed object to create the base grid
 test_system.model_object1()
 
-min_phase=-0.5
-max_phase=0.5
+min_phase=-0.1
+max_phase=0.1
 
 phase_tmp=[]
 master_flux_arr=[]
-for i, phase in enumerate(np.arange(min_phase,max_phase,0.01)):
+for i, phase in enumerate(np.arange(min_phase,max_phase,0.001)):
     model = test_system.model_object2(phase=phase)
 
-    flux = np.sum(model) #Sums up the values in the grid to get a total flux value
+    vgrid = np.arange(-20,20,0.2)
+    line_prof, diff_line_prof = test_system.model_profile(model, vgrid=vgrid, vsini=3)
+
+    flux = test_system.normalised_flux(model)
 
     phase_tmp.append(phase) #Appends the current phase value to a temporary array for the plotting
     master_flux_arr.append(flux) #Appends the flux value to a master array that is used to track the flux across multiple frames
-    
-    # Normalises the flux array for plotting without overwriting the growing list of fluxes
-    plot_flux_arr = np.array(master_flux_arr)/np.median(master_flux_arr)
 
-    fig, (ax1, ax2) = plt.subplots(2, figsize=(8,15))
+    fig, (ax1, ax2, ax3) = plt.subplots(3, figsize=(8,20))
     
     # Plots visualisation of the system
     ax1.imshow(model)
     ax1.axis("off")
 
     # Plots light curve
-    ax2.scatter(phase_tmp, plot_flux_arr, marker='.', c='c')
+    ax2.scatter(phase_tmp, master_flux_arr, marker='.', c='c')
     ax2.set_xlim(min_phase, max_phase)
 
     ax2.set_xlabel("Phase")
     ax2.set_ylabel("Normalized Flux")
 
-    #Sets the aspect ratios of the two subplots to be the same
-    asp = np.diff(ax2.get_xlim())[0] / np.diff(ax2.get_ylim())[0]
-    asp /= np.abs(np.diff(ax1.get_xlim())[0] / np.diff(ax1.get_ylim())[0])
-    ax2.set_aspect(asp)
+    ax3.plot(vgrid, line_prof/max(line_prof))
+
+    ax3.set_xlabel("Velocity")
+    ax3.set_ylabel("Flux")
+
+    #Sets the aspect ratios of the subplots to be the same
+    asp2 = np.diff(ax2.get_xlim())[0] / np.diff(ax2.get_ylim())[0]
+    asp2 /= np.abs(np.diff(ax1.get_xlim())[0] / np.diff(ax1.get_ylim())[0])
+    ax2.set_aspect(asp2)
+
+    asp3 = np.diff(ax3.get_xlim())[0] / np.diff(ax3.get_ylim())[0]
+    asp3 /= np.abs(np.diff(ax1.get_xlim())[0] / np.diff(ax1.get_ylim())[0])
+    ax3.set_aspect(asp3)
+    
 
     fig.savefig("figs/model_{0:04d}.png".format(i), dpi=200, bbox_inches='tight', pad_inches=0.1)
     plt.close(fig)
