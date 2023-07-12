@@ -1,9 +1,10 @@
 import numpy as np
 import matplotlib.pyplot as plt
-import imageio
+import imageio.v2 as imageio
 from glob import glob
 from tqdm import tqdm
 from multiprocessing import Pool
+import os
 
 class system(object):
 
@@ -83,9 +84,19 @@ class system(object):
 
         return line_profile/norm, diff_line_profile  
 
-def gif_maker(file_list):
-    # Creates the gif by combining all the image files in the given list
-    with imageio.get_writer('figs/test1.gif', mode='I', duration=0.1) as writer:
+def gif_maker(file_list, output_file):
+    """Makes gif (pronounced jif)
+
+    Creates the gif by combining all the image files in the given list.
+
+    Args:
+        file_list (:obj:`list` of :obj:`str`): List of filepaths to individual images to be compiled into gif
+        output_file (str): Filename for output gif
+
+    Returns:
+        None
+    """
+    with imageio.get_writer('figs/{}.gif'.format(output_file), mode='I', duration=0.1) as writer:
         for file in file_list:
             image = imageio.imread(file)
             writer.append_data(image)
@@ -102,63 +113,72 @@ def get_fluxes(model_list, grid1):
         flux_arr.append(normalised_flux(model, grid1=grid1))
     return np.array(flux_arr)
 
+def main():
+    #Janky fix so the code doesn't just run while we're messing around with docs and such
+    dirname = "figs"
+    if not os.path.isdir(dirname):
+        os.mkdir(dirname)
 
-test_system = system(n_pixs=1000, R1=0.32, R2=0.3, a_R1=4., b=0., theta=0, L2_L1=0., u1_1 = 2 * np.sqrt(0.6) * 0.85, u2_1=np.sqrt(0.6) * (1 - 2 * 0.85)) #, u1_2 = 2 * np.sqrt(0.6) * 0.85, u2_2=np.sqrt(0.6) * (1 - 2 * 0.85))
+    # TODO alter code so it can be imported then input parameters added in ipython etc.
+    # TODO alter normalisation when using difflineprofile
+    # TODO create function for creating full plots for a given phase, then implement multiprocessing to speed code up
 
-# Model the fixed object to create the base grid
-master_grid = test_system.model_object1()
 
-min_phase=-0.1
-max_phase=0.1
-stepsize=0.001
+    test_system = system(n_pixs=1000, R1=0.32, R2=0.3, a_R1=4., b=0., theta=0, L2_L1=0., u1_1 = 2 * np.sqrt(0.6) * 0.85, u2_1=np.sqrt(0.6) * (1 - 2 * 0.85)) #, u1_2 = 2 * np.sqrt(0.6) * 0.85, u2_2=np.sqrt(0.6) * (1 - 2 * 0.85))
 
-phase_arr = np.arange(min_phase,max_phase,stepsize)
+    # Model the fixed object to create the base grid
+    master_grid = test_system.model_object1()
 
-# Creates a multiprocessing pool
-pool = Pool(8)
-# Creates models for all phases using multiprocess pool for speed
-model_list = list(tqdm(pool.imap(test_system.model_object2, phase_arr), total=len(phase_arr)))
-flux_arr = get_fluxes(model_list, master_grid)
+    min_phase=-0.1
+    max_phase=0.1
+    stepsize=0.001
 
-for i, (phase, model) in enumerate(tqdm(zip(phase_arr, model_list), total=len(phase_arr))):
-    vgrid = np.arange(-20,20,0.2)
-    line_prof, diff_line_prof = test_system.model_profile(model, vgrid=vgrid, vsini=3)
+    phase_arr = np.arange(min_phase,max_phase,stepsize)
 
-    #Create temporary arrays of the phase and flux for the current phase value for plotting
-    phase_tmp = phase_arr[phase_arr<=phase]
-    flux_tmp = flux_arr[phase_arr<=phase]
+    # Creates a multiprocessing pool
+    pool = Pool(8)
+    # Creates models for all phases using multiprocess pool for speed
+    model_list = list(tqdm(pool.imap(test_system.model_object2, phase_arr), total=len(phase_arr)))
+    flux_arr = get_fluxes(model_list, master_grid)
 
-    fig, (ax1, ax2, ax3) = plt.subplots(3, figsize=(8,20))
-    
-    # Plots visualisation of the system
-    ax1.imshow(model)
-    ax1.axis("off")
+    for i, (phase, model) in enumerate(tqdm(zip(phase_arr, model_list), total=len(phase_arr))):
+        vgrid = np.arange(-20,20,0.2)
+        line_prof, diff_line_prof = test_system.model_profile(model, vgrid=vgrid, vsini=3)
 
-    # Plots light curve
-    ax2.scatter(phase_tmp, flux_tmp, marker='.', c='c')
-    ax2.set_xlim(min_phase, max_phase)
+        #Create temporary arrays of the phase and flux for the current phase value for plotting
+        phase_tmp = phase_arr[phase_arr<=phase]
+        flux_tmp = flux_arr[phase_arr<=phase]
 
-    ax2.set_xlabel("Phase")
-    ax2.set_ylabel("Normalized Flux")
+        fig, (ax1, ax2, ax3) = plt.subplots(3, figsize=(8,20))
+        
+        # Plots visualisation of the system
+        ax1.imshow(model)
+        ax1.axis("off")
 
-    ax3.plot(vgrid, line_prof/max(line_prof))
+        # Plots light curve
+        ax2.scatter(phase_tmp, flux_tmp, marker='.', c='c')
+        ax2.set_xlim(min_phase, max_phase)
 
-    ax3.set_xlabel("Velocity")
-    ax3.set_ylabel("Flux")
+        ax2.set_xlabel("Phase")
+        ax2.set_ylabel("Normalized Flux")
 
-    #Sets the aspect ratios of the subplots to be the same
-    asp2 = np.diff(ax2.get_xlim())[0] / np.diff(ax2.get_ylim())[0]
-    asp2 /= np.abs(np.diff(ax1.get_xlim())[0] / np.diff(ax1.get_ylim())[0])
-    ax2.set_aspect(asp2)
+        ax3.plot(vgrid, diff_line_prof/max(diff_line_prof))
 
-    asp3 = np.diff(ax3.get_xlim())[0] / np.diff(ax3.get_ylim())[0]
-    asp3 /= np.abs(np.diff(ax1.get_xlim())[0] / np.diff(ax1.get_ylim())[0])
-    ax3.set_aspect(asp3)
-    
+        ax3.set_xlabel("Velocity")
+        ax3.set_ylabel("Flux")
 
-    fig.savefig("figs/model_{0:04d}.png".format(i), dpi=200, bbox_inches='tight', pad_inches=0.1)
-    plt.close(fig)
+        #Sets the aspect ratios of the subplots to be the same
+        asp2 = np.diff(ax2.get_xlim())[0] / np.diff(ax2.get_ylim())[0]
+        asp2 /= np.abs(np.diff(ax1.get_xlim())[0] / np.diff(ax1.get_ylim())[0])
+        ax2.set_aspect(asp2)
 
-file_list = glob("figs/*.png")
-gif_maker(sorted(file_list))
+        asp3 = np.diff(ax3.get_xlim())[0] / np.diff(ax3.get_ylim())[0]
+        asp3 /= np.abs(np.diff(ax1.get_xlim())[0] / np.diff(ax1.get_ylim())[0])
+        ax3.set_aspect(asp3)
+        
 
+        fig.savefig("figs/model_{0:04d}.png".format(i), dpi=200, bbox_inches='tight', pad_inches=0.1)
+        plt.close(fig)
+
+    file_list = glob("figs/*.png")
+    gif_maker(sorted(file_list))

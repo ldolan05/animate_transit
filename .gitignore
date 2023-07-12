@@ -3,3 +3,5 @@
 .vscode/
 *.png
 *.gif
+animate_transit/__pycache__/
+animate_transit.egg-info

@@ -1,2 +1,2 @@
 # animate_transit
-Creates a lightcurve animation of an objects transit
+Creates an animation of a transiting system, the light curve generated and the line profile.
