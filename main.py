@@ -65,18 +65,21 @@ class system(object):
     
     def model_profile(self, grid, vgrid, vsini, a=0.5, linewidth=3.):
         
-        vc=(np.arange(self.n_pixs)-self.n_pixs/2)/self.R1*vsini
+        vc=(np.arange(self.n_pixs)-self.n_pixs/2)/(self.R1*vsini)
         vs=vgrid[np.newaxis,:]-vc[:,np.newaxis]
 
-        profile=1.-a*np.exp( -(vs*vs)/2./linewidth**2)
+        profile=1.-a*np.exp(-(vs*vs)/2./linewidth**2)
 
         sflux=grid.sum(axis=0)
+        sflux_star = self.grid1.sum(axis=0)
+        sflux = sflux/np.max(sflux_star)
+        sflux_star = sflux_star/np.max(sflux_star)
+
         line_profile=np.dot(sflux,profile)
 
-        sflux_star = self.grid1.sum(axis=0)
         diff_line_profile = np.dot(sflux_star, profile)/line_profile
         norm = np.max(np.dot(sflux_star, profile))
-
+    
         return line_profile/norm, diff_line_profile
     
     def normalised_flux(self, grid):
@@ -126,7 +129,7 @@ for i, phase in enumerate(np.arange(min_phase,max_phase,0.001)):
     ax2.set_xlabel("Phase")
     ax2.set_ylabel("Normalized Flux")
 
-    ax3.plot(vgrid, line_prof/max(line_prof))
+    ax3.plot(vgrid, line_prof)
 
     ax3.set_xlabel("Velocity")
     ax3.set_ylabel("Flux")
