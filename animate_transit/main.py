@@ -28,6 +28,9 @@ class system(object):
 
         pix_per_unit = n_pixs/(3*R1+2*(a_R1*R1)+3*R2)  #conversion factor between pixels and unit
 
+        if R1<=0 or R2<=0:
+            raise ValueError("Radii cannot be negative")
+
         self.R1 = pix_per_unit*R1  # radius of object 1 (stationary object) in same units as R2
         self.R2 = pix_per_unit*R2  # radius of object 2 in same units as R1
 
@@ -71,7 +74,7 @@ class system(object):
         Models the flux of the orbiting object at the given phase
 
         Args:
-            phase (float): Orbital phase of object 2 to model
+            phase (float): Orbital phase of object 2 to model where transit occurs at phase=0.
             
         Returns:
             grid (np.ndarray of float): 2D pixel map showing visualisation of the system
@@ -109,10 +112,12 @@ def gif_maker(file_list, output_file):
     Returns:
         None
     """
-    with imageio.get_writer('{}.gif'.format(output_file), mode='I', duration=0.1) as writer:
+    with imageio.get_writer('{}'.format(output_file), mode='I', duration=0.1) as writer:
         for file in file_list:
             image = imageio.imread(file)
             writer.append_data(image)
+
+    print("Gif written to {}".format(output_file))
 
 def normalised_flux(grid, grid1):
     """
@@ -197,8 +202,8 @@ def create_animation_pixs(phase_arr, output_gif, n_pixs=1000, R1=0.4, R2=0.1, a_
         # Plots visualisation of the system
         ax1.imshow(model)
         ax1.axis("off")
-
         # Plots light curve
+        #TODO fix number of decimal places for normalised flux so the subplots don't jump around (jump jump, jump around!)
         ax2.scatter(phase_tmp, flux_tmp, marker='.', c='c')
         ax2.set_xlim(min(phase_arr), max(phase_arr))
 
