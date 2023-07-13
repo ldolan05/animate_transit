@@ -146,7 +146,7 @@ def create_animation_pixs(phase_arr, vgrid, n_pixs=1000, R1=0.32, R2=0.3, a_R1=4
         phase_tmp = phase_arr[phase_arr<=phase]
         flux_tmp = flux_arr[phase_arr<=phase]
 
-        fig, (ax1, ax2, ax3) = plt.subplots(3, figsize=(8,20))
+        fig, (ax1, ax2) = plt.subplots(2, figsize=(8,15))
         
         # Plots visualisation of the system
         ax1.imshow(model)
@@ -169,9 +169,9 @@ def create_animation_pixs(phase_arr, vgrid, n_pixs=1000, R1=0.32, R2=0.3, a_R1=4
         asp2 /= np.abs(np.diff(ax1.get_xlim())[0] / np.diff(ax1.get_ylim())[0])
         ax2.set_aspect(asp2)
 
-        asp3 = np.diff(ax3.get_xlim())[0] / np.diff(ax3.get_ylim())[0]
-        asp3 /= np.abs(np.diff(ax1.get_xlim())[0] / np.diff(ax1.get_ylim())[0])
-        ax3.set_aspect(asp3)
+        # asp3 = np.diff(ax3.get_xlim())[0] / np.diff(ax3.get_ylim())[0]
+        # asp3 /= np.abs(np.diff(ax1.get_xlim())[0] / np.diff(ax1.get_ylim())[0])
+        # ax3.set_aspect(asp3)
         
         fig.savefig("figs/model_{0:04d}.png".format(i), dpi=200, bbox_inches='tight', pad_inches=0.1)
         plt.close(fig)
