@@ -44,7 +44,15 @@
               <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul class="current">
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Main functions</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#main.create_animation_pixs"><code class="docutils literal notranslate"><span class="pre">create_animation_pixs()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#main.get_fluxes"><code class="docutils literal notranslate"><span class="pre">get_fluxes()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#main.gif_maker"><code class="docutils literal notranslate"><span class="pre">gif_maker()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#main.normalised_flux"><code class="docutils literal notranslate"><span class="pre">normalised_flux()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#main.system"><code class="docutils literal notranslate"><span class="pre">system</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#main.system.model_object1"><code class="docutils literal notranslate"><span class="pre">system.model_object1()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#main.system.model_object2"><code class="docutils literal notranslate"><span class="pre">system.model_object2()</span></code></a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
@@ -77,6 +85,57 @@
 <span id="main"></span><h1>Main functions<a class="headerlink" href="#main-functions" title="Permalink to this heading"></a></h1>
 <p>Functions to do everything</p>
 <span class="target" id="module-main"></span><dl class="py function">
+<dt class="sig sig-object py" id="main.create_animation_pixs">
+<span class="sig-prename descclassname"><span class="pre">main.</span></span><span class="sig-name descname"><span class="pre">create_animation_pixs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">phase_arr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_gif</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_pixs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">R1</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">R2</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">a_R1</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">b</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">theta</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">L2_L1</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">u1_1</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">u2_1</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.2</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#main.create_animation_pixs" title="Permalink to this definition"></a></dt>
+<dd><p>Make animation</p>
+<p>Creates 2D grid of a 2-body system for a range of phases. Also combines all figures into a gif.
+We include example parameters for ease of running.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>phase_arr</strong> (<em>array</em>) – Phase values for animation to cover.</p></li>
+<li><p><strong>output_gif</strong> (<em>str</em>) – File path for final gif to be saved under.</p></li>
+<li><p><strong>n_pixs</strong> (<em>int</em>) – Size of the image canvas size in pixels. The canvas will be a square.</p></li>
+<li><p><strong>R1</strong> (<em>float</em>) – Radius of stationary primary object in same units as R2</p></li>
+<li><p><strong>R2</strong> (<em>float</em>) – Radius of secondary object in same units as R1</p></li>
+<li><p><strong>a_R1</strong> (<em>float</em>) – Ratio of semi-major axis and radius of primary object (R1)</p></li>
+<li><p><strong>b</strong> (<em>float</em>) – Impact parameter of transit</p></li>
+<li><p><strong>theta</strong> (<em>float</em>) – Spin-orbit angle</p></li>
+<li><p><strong>L2_L1</strong> (<em>float</em>) – Ratio of luminosity of secondary object to luminosity primary object</p></li>
+<li><p><strong>u1_1</strong> (<em>float</em><em>, </em><em>optional</em>) – Quadratic limb darkening coefficient for object 1 (default: None)</p></li>
+<li><p><strong>u2_1</strong> (<em>float</em><em>, </em><em>optional</em>) – Quadratic limb darkening coefficient for object 1 (default: None)</p></li>
+<li><p><strong>u1_2</strong> (<em>float</em><em>, </em><em>optional</em>) – Quadratic limb darkening coefficient for object 2 (default: None)</p></li>
+<li><p><strong>u2_2</strong> (<em>float</em><em>, </em><em>optional</em>) – Quadratic limb darkening coefficient for object 2 (default: None)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="main.get_fluxes">
+<span class="sig-prename descclassname"><span class="pre">main.</span></span><span class="sig-name descname"><span class="pre">get_fluxes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model_list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grid1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#main.get_fluxes" title="Permalink to this definition"></a></dt>
+<dd><p>Flux Calculation</p>
+<p>Calculates full array of fluxes for the light curve.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>model_list</strong> (<code class="xref py py-obj docutils literal notranslate"><span class="pre">list</span></code> of <code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code>) – list of model outputs (generated using model_object1 and model_object2)</p></li>
+<li><p><strong>grid1</strong> (<em>array</em>) – 2D pixel map of object 1 (returned from model_object1)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Flux values for the given model list.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>flux_arr (array)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="main.gif_maker">
 <span class="sig-prename descclassname"><span class="pre">main.</span></span><span class="sig-name descname"><span class="pre">gif_maker</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file_list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_file</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#main.gif_maker" title="Permalink to this definition"></a></dt>
 <dd><p>Makes gif (pronounced jif)</p>
@@ -92,6 +151,80 @@
 <dd class="field-even"><p>None</p>
 </dd>
 </dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="main.normalised_flux">
+<span class="sig-prename descclassname"><span class="pre">main.</span></span><span class="sig-name descname"><span class="pre">normalised_flux</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">grid</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grid1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#main.normalised_flux" title="Permalink to this definition"></a></dt>
+<dd><p>Calculates the normalised flux for the given model by comparing to the background pixel image of just the stationary object</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>grid</strong> (<em>np.ndarray</em><em> of </em><em>float</em>) – Output model grid from model_object2 for given phase</p></li>
+<li><p><strong>grid1</strong> (<em>np.ndarray</em><em> of </em><em>float</em>) – 2D pixel map of object 1 (returned from model_object1)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The normalised flux for the given model grid</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>flux (float)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="main.system">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">main.</span></span><span class="sig-name descname"><span class="pre">system</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_pixs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">R1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">R2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">a_R1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">b</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">theta</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">L2_L1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">u1_1</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">u2_1</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">u1_2</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">u2_2</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#main.system" title="Permalink to this definition"></a></dt>
+<dd><p>A class to store information about the system and model the primary and secondary object</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>n_pixs</strong> (<em>int</em>) – Size of the image canvas size in pixels. The canvas will be a square.</p></li>
+<li><p><strong>R1</strong> (<em>float</em>) – Radius of stationary primary object in same units as R2</p></li>
+<li><p><strong>R2</strong> (<em>float</em>) – Radius of secondary object in same units as R1</p></li>
+<li><p><strong>a_R1</strong> (<em>float</em>) – Ratio of semi-major axis and radius of primary object (R1)</p></li>
+<li><p><strong>b</strong> (<em>float</em>) – Impact parameter of transit</p></li>
+<li><p><strong>theta</strong> (<em>float</em>) – Spin-orbit angle</p></li>
+<li><p><strong>L2_L1</strong> (<em>float</em>) – Ratio of luminosity of secondary object to luminosity primary object</p></li>
+<li><p><strong>u1_1</strong> (<em>float</em><em>, </em><em>optional</em>) – Quadratic limb darkening coefficient for object 1 (default: None)</p></li>
+<li><p><strong>u2_1</strong> (<em>float</em><em>, </em><em>optional</em>) – Quadratic limb darkening coefficient for object 1 (default: None)</p></li>
+<li><p><strong>u1_2</strong> (<em>float</em><em>, </em><em>optional</em>) – Quadratic limb darkening coefficient for object 2 (default: None)</p></li>
+<li><p><strong>u2_2</strong> (<em>float</em><em>, </em><em>optional</em>) – Quadratic limb darkening coefficient for object 2 (default: None)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="main.system.model_object1">
+<span class="sig-name descname"><span class="pre">model_object1</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#main.system.model_object1" title="Permalink to this definition"></a></dt>
+<dd><p>Models the flux of the stationary object in the centre of the pixel canvas</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Base pixel grid with the stationary object at the centre</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>grid1 (np.ndarray of float)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="main.system.model_object2">
+<span class="sig-name descname"><span class="pre">model_object2</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">phase</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#main.system.model_object2" title="Permalink to this definition"></a></dt>
+<dd><p>Models the flux of the orbiting object at the given phase</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>phase</strong> (<em>float</em>) – Orbital phase of object 2 to model</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>2D pixel map showing visualisation of the system</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>grid (np.ndarray of float)</p>
+</dd>
+</dl>
+</dd></dl>
+
 </dd></dl>
 
 </div>
