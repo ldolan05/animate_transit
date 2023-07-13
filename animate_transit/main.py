@@ -113,8 +113,8 @@ def get_fluxes(model_list, grid1):
         flux_arr.append(normalised_flux(model, grid1=grid1))
     return np.array(flux_arr)
 
-def main():
-    #Janky fix so the code doesn't just run while we're messing around with docs and such
+def create_animation_pixs(phase_arr, vgrid, n_pixs=1000, R1=0.32, R2=0.3, a_R1=4., b=0., theta=0, L2_L1=0., u1_1 = 2 * np.sqrt(0.6) * 0.85, u2_1=np.sqrt(0.6) * (1 - 2 * 0.85)):
+
     dirname = "figs"
     if not os.path.isdir(dirname):
         os.mkdir(dirname)
@@ -124,7 +124,7 @@ def main():
     # TODO create function for creating full plots for a given phase, then implement multiprocessing to speed code up
 
 
-    test_system = system(n_pixs=1000, R1=0.32, R2=0.3, a_R1=4., b=0., theta=0, L2_L1=0., u1_1 = 2 * np.sqrt(0.6) * 0.85, u2_1=np.sqrt(0.6) * (1 - 2 * 0.85)) #, u1_2 = 2 * np.sqrt(0.6) * 0.85, u2_2=np.sqrt(0.6) * (1 - 2 * 0.85))
+    test_system = system(n_pixs, R1, R2, a_R1, b, theta, L2_L1, u1_1, u2_1)
 
     # Model the fixed object to create the base grid
     master_grid = test_system.model_object1()
@@ -133,8 +133,6 @@ def main():
     max_phase=0.1
     stepsize=0.001
 
-    phase_arr = np.arange(min_phase,max_phase,stepsize)
-
     # Creates a multiprocessing pool
     pool = Pool(8)
     # Creates models for all phases using multiprocess pool for speed
@@ -142,7 +140,6 @@ def main():
     flux_arr = get_fluxes(model_list, master_grid)
 
     for i, (phase, model) in enumerate(tqdm(zip(phase_arr, model_list), total=len(phase_arr))):
-        vgrid = np.arange(-20,20,0.2)
         line_prof, diff_line_prof = test_system.model_profile(model, vgrid=vgrid, vsini=3)
 
         #Create temporary arrays of the phase and flux for the current phase value for plotting
@@ -176,7 +173,6 @@ def main():
         asp3 /= np.abs(np.diff(ax1.get_xlim())[0] / np.diff(ax1.get_ylim())[0])
         ax3.set_aspect(asp3)
         
-
         fig.savefig("figs/model_{0:04d}.png".format(i), dpi=200, bbox_inches='tight', pad_inches=0.1)
         plt.close(fig)
 
