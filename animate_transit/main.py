@@ -123,7 +123,6 @@ def create_animation_pixs(phase_arr, vgrid, n_pixs=1000, R1=0.32, R2=0.3, a_R1=4
     # TODO alter normalisation when using difflineprofile
     # TODO create function for creating full plots for a given phase, then implement multiprocessing to speed code up
 
-
     test_system = system(n_pixs, R1, R2, a_R1, b, theta, L2_L1, u1_1, u2_1)
 
     # Model the fixed object to create the base grid
