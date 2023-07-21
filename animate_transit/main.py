@@ -18,12 +18,16 @@ class system(object):
         b (float): Impact parameter of transit
         theta (float): Spin-orbit angle
         L2_L1 (float): Ratio of luminosity of secondary object to luminosity primary object
+        atm_R1 (float): Radius of object 1 including atmosphere in same units as R1
+        atm_R2 (float): Radius of object 2 including atmosphere in same units as R2
+        tau1 (float): Opactiy of atmosphere of object 1 (must be 1 if u1_1 and u2_1 are not None)
+        tau2 (float): Opacity of atmosphere of object 2 (must be 1 if u1_2 and u2_2 are not None)
         u1_1 (float, optional): Quadratic limb darkening coefficient for object 1 (default: None) TODO add ref
         u2_1 (float, optional): Quadratic limb darkening coefficient for object 1 (default: None)
         u1_2 (float, optional): Quadratic limb darkening coefficient for object 2 (default: None)
         u2_2 (float, optional): Quadratic limb darkening coefficient for object 2 (default: None)
     """
-    def __init__(self, n_pixs, R1, R2, a_R1, b, theta, L2_L1, u1_1=None, u2_1=None, u1_2=None, u2_2=None):
+    def __init__(self, n_pixs, R1, R2, a_R1, b, theta, L2_L1, atm_R1, atm_R2, tau1, tau2, u1_1=None, u2_1=None, u1_2=None, u2_2=None):
         self.n_pixs = n_pixs    # number of pixels in grid (npixs by npixs)
 
         pix_per_unit = n_pixs/(3*R1+2*(a_R1*R1)+3*R2)  #conversion factor between pixels and unit
@@ -46,6 +50,12 @@ class system(object):
         self.u1_2= u1_2         # limb darkening coefficents for object 2
         self.u2_2 = u2_2
 
+        self.atm_R1 = atm_R1    # radius of object 1 including atmosphere
+        self.atm_R2 = atm_R2    # radius of object 2 including atmosphere
+
+        self.tau1 = tau1        # opacity of atmosphere of object 1
+        self.tau2 = tau2        # opacity of atmosphere of object 2
+
     def model_object1(self):
         """
         Models the flux of the stationary object in the centre of the pixel canvas
@@ -66,6 +76,8 @@ class system(object):
                         self.grid1[y, x]=1.-self.u1_1*onemu - self.u2_1*onemu*onemu
                     else:
                         self.grid1[y, x]=1.
+                elif r <= self.atm_R1:
+                        self.grid1[y, x]=grid1[y, x]*self.tau1
 
         return self.grid1
 
@@ -97,6 +109,10 @@ class system(object):
                         if self.u1_2!=None and self.u2_2!=None:
                             onemu=1.-np.sqrt(1.-r**2/(self.R2)**2)
                             grid[y, x]=grid[y, x]*(1-self.u1_2*onemu - self.u2_2*onemu*onemu)
+                elif r <= self.atm_R2:
+                    if abs(phase)<0.25 or self.grid1[y, x]==0:
+                        grid[y, x]=self.L2_L1
+                        grid[y, x] = grid[y, x]*self.tau2
 
         return grid
 
@@ -151,7 +167,7 @@ def get_fluxes(model_list, grid1):
         flux_arr.append(normalised_flux(model, grid1=grid1))
     return np.array(flux_arr)
 
-def create_animation_pixs(phase_arr, output_gif, n_pixs=1000, R1=0.4, R2=0.1, a_R1=4., b=0.1, theta=0.1, L2_L1=0., u1_1 = 0.5, u2_1 = 0.2):
+def create_animation_pixs(phase_arr, output_gif, n_pixs=1000, R1=0.4, R2=0.1, a_R1=4., b=0.1, theta=0.1, L2_L1=0., atm_R1=0.4, atm_R2=0.2, tau1=1., tau2=0.1, u1_1 = 0.5, u2_1 = 0.2):
     """Make animation 
 
     Creates 2D grid of a 2-body system for a range of phases. Also combines all figures into a gif.
@@ -167,6 +183,10 @@ def create_animation_pixs(phase_arr, output_gif, n_pixs=1000, R1=0.4, R2=0.1, a_
         b (float): Impact parameter of transit
         theta (float): Spin-orbit angle
         L2_L1 (float): Ratio of luminosity of secondary object to luminosity primary object
+        atm_R1 (float): Radius of object 1 including atmosphere in same units as R1 (set equal to R1 to exclude an atmosphere)
+        atm_R2 (float): Radius of object 2 including atmosphere in same units as R2 (set equal to R2 to exclude an atmosphere)
+        tau1 (float): Opactiy of atmosphere of object 1
+        tau2 (float): Opacity of atmosphere of object 2
         u1_1 (float, optional): Quadratic limb darkening coefficient for object 1 (default: None)
         u2_1 (float, optional): Quadratic limb darkening coefficient for object 1 (default: None)
         u1_2 (float, optional): Quadratic limb darkening coefficient for object 2 (default: None)
@@ -181,7 +201,7 @@ def create_animation_pixs(phase_arr, output_gif, n_pixs=1000, R1=0.4, R2=0.1, a_
 
     # TODO implement multiprocessing for plotting to speed code up
 
-    test_system = system(n_pixs, R1, R2, a_R1, b, theta, L2_L1, u1_1, u2_1)
+    test_system = system(n_pixs, R1, R2, a_R1, b, theta, L2_L1, atm_R1, atm_R2, tau1, tau2, u1_1, u2_1)
 
     # Model the fixed object to create the base grid
     master_grid = test_system.model_object1()
@@ -206,7 +226,7 @@ def create_animation_pixs(phase_arr, output_gif, n_pixs=1000, R1=0.4, R2=0.1, a_
         #TODO fix number of decimal places for normalised flux so the subplots don't jump around (jump jump, jump around!)
         ax2.scatter(phase_tmp, flux_tmp, marker='.', c='c')
         ax2.set_xlim(min(phase_arr), max(phase_arr))
-
+        ax2.set_ylim(min(flux_arr), max(flux_arr))
         ax2.set_xlabel("Phase")
         ax2.set_ylabel("Normalized Flux")
 
