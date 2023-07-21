@@ -50,8 +50,8 @@ class system(object):
         self.u1_2= u1_2         # limb darkening coefficents for object 2
         self.u2_2 = u2_2
 
-        self.atm_R1 = atm_R1    # radius of object 1 including atmosphere
-        self.atm_R2 = atm_R2    # radius of object 2 including atmosphere
+        self.atm_R1 = pix_per_unit*atm_R1    # radius of object 1 including atmosphere
+        self.atm_R2 = pix_per_unit*atm_R2    # radius of object 2 including atmosphere
 
         self.tau1 = tau1        # opacity of atmosphere of object 1
         self.tau2 = tau2        # opacity of atmosphere of object 2
@@ -77,7 +77,7 @@ class system(object):
                     else:
                         self.grid1[y, x]=1.
                 elif r <= self.atm_R1:
-                        self.grid1[y, x]=grid1[y, x]*self.tau1
+                        self.grid1[y, x]=self.grid1[y, x]*self.tau1
 
         return self.grid1
 
@@ -110,13 +110,13 @@ class system(object):
                             onemu=1.-np.sqrt(1.-r**2/(self.R2)**2)
                             grid[y, x]=grid[y, x]*(1-self.u1_2*onemu - self.u2_2*onemu*onemu)
                 elif r <= self.atm_R2:
-                    if abs(phase)<0.25 or self.grid1[y, x]==0:
-                        grid[y, x]=self.L2_L1
-                        grid[y, x] = grid[y, x]*self.tau2
+                    if abs(phase)<0.25:
+                        grid[y, x] = self.grid1[y, x]*self.tau2
 
         return grid
 
 def gif_maker(file_list, output_file):
+    print('Making gif...')
     """Makes gif (pronounced jif)
 
     Creates the gif by combining all the image files in the given list.
@@ -212,21 +212,22 @@ def create_animation_pixs(phase_arr, output_gif, n_pixs=1000, R1=0.4, R2=0.1, a_
     model_list = list(tqdm(pool.imap(test_system.model_object2, phase_arr), total=len(phase_arr)))
     flux_arr = get_fluxes(model_list, master_grid)
 
+    plt.style.use('dark_background')
     for i, (phase, model) in enumerate(tqdm(zip(phase_arr, model_list), total=len(phase_arr))):
         #Create temporary arrays of the phase and flux for the current phase value for plotting
         phase_tmp = phase_arr[phase_arr<=phase]
         flux_tmp = flux_arr[phase_arr<=phase]
 
-        fig, (ax1, ax2) = plt.subplots(2, figsize=(8,15))
-        
+        fig, (ax1, ax2) = plt.subplots(2, figsize=(8,15), facecolor='k')
+        plt.style.use('dark_background')
         # Plots visualisation of the system
-        ax1.imshow(model)
+        ax1.imshow(model, cmap = 'inferno')
         ax1.axis("off")
         # Plots light curve
         #TODO fix number of decimal places for normalised flux so the subplots don't jump around (jump jump, jump around!)
         ax2.scatter(phase_tmp, flux_tmp, marker='.', c='c')
         ax2.set_xlim(min(phase_arr), max(phase_arr))
-        ax2.set_ylim(min(flux_arr), max(flux_arr))
+        ax2.set_ylim(min(flux_arr)-0.01, max(flux_arr)+0.01)
         ax2.set_xlabel("Phase")
         ax2.set_ylabel("Normalized Flux")
 
