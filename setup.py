@@ -23,5 +23,7 @@ setup(
 
     packages=find_packages(),
 
+    description="Generates an animation and lightcurve for a transiting 2-body system",
+
     install_requires=get_requires()
 )
